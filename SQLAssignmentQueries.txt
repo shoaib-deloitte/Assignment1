@@ -1,0 +1,37 @@
+CREATE TABLE Team_Details (Slno SERIAL PRIMARY KEY, Team_Name VARCHAR(5), Captain VARCHAR(20), Owner VARCHAR(20), Home_Ground VARCHAR(10));
+CREATE TABLE Fixtures (Match_Number INT PRIMARY KEY, Home_Team VARCHAR(5), Away_Team VARCHAR(5), Venue VARCHAR(20), Team_Won VARCHAR(5), Team_Lost VARCHAR(5));
+CREATE TABLE Points (Team_Name VARCHAR(5) PRIMARY KEY, No_of_Wins INT, No_of_Losses INT, Points INT);
+
+
+COPY Fixtures FROM 'C:\Fixtures.csv' DELIMITER ',' CSV HEADER;
+COPY Team_Details FROM 'C:\team-details.csv' DELIMITER ',' CSV HEADER;
+
+SELECT * FROM Fixtures;
+SELECT * FROM Team_Details;
+
+SELECT COUNT(*) FROM Team_Details;
+
+SELECT * FROM Fixtures WHERE Home_Team='RCB';
+
+SELECT DISTINCT Team_Lost FROM Fixtures WHERE Venue='Kolkata';
+
+
+INSERT INTO Points(Team_Name) (
+SELECT Team_Won AS Teams FROM Fixtures GROUP BY Team_Won HAVING COUNT(Team_Won) > 8 
+UNION
+SELECT Team_Lost AS Teams FROM Fixtures GROUP BY Team_Lost HAVING COUNT(Team_Lost)=(SELECT MAX(counter.count) From (SELECT COUNT(*) FROM Fixtures GROUP BY Team_Lost) counter)
+UNION
+SELECT Team_Won AS Teams FROM Fixtures GROUP BY Team_Won HAVING COUNT(Team_Won)*2 BETWEEN 11 AND 15
+);
+
+UPDATE Points SET 
+No_of_Wins=(SELECT COUNT(*) FROM Fixtures WHERE Team_Won=Points.Team_Name),
+No_of_Losses=(SELECT COUNT(*) FROM Fixtures WHERE Team_Lost=points.Team_Name)
+
+UPDATE Points SET Points=No_of_Wins*2;
+
+
+
+SELECT No_of_Losses FROM Points WHERE Team_Name='PK';
+
+SELECT Team_Name FROM Points WHERE Points>(SELECT Points FROM Points WHERE Team_Name='RR');
